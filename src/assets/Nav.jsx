@@ -1,22 +1,33 @@
 // Navbar.js
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Update import
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../images/Name_logo.png";
 import { BsSearch, BsMic } from "react-icons/bs";
 import LoginModal from "./LoginModal";
 import SignupModal from "./SignUpModal";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
+
 function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const navigate = useNavigate(); // Replace useHistory with useNavigate
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const handleScroll = () => {
-    const scrollPosition = window.scrollY;
-    setIsScrolled(scrollPosition > 0);
+    const currentScrollPosition = window.scrollY;
+    setIsScrolled(currentScrollPosition > 0);
+    setScrollPosition(currentScrollPosition);
+
+    // Show/hide search bar based on scroll position and homepage
+    setShowSearchBar(
+      currentScrollPosition > window.innerHeight * 0.5 &&
+      (location.pathname === "/" || location.pathname === "/sell")
+    );
   };
 
   const openLoginModal = () => {
@@ -36,7 +47,6 @@ function Navbar() {
     try {
       const auth = getAuth();
       await signOut(auth);
-      // Update the current user state after logout
       setCurrentUser(null);
     } catch (error) {
       console.error("Error logging out:", error.message);
@@ -46,7 +56,6 @@ function Navbar() {
   useEffect(() => {
     const auth = getAuth();
 
-    // Add an event listener to track the authentication state
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
     });
@@ -55,15 +64,13 @@ function Navbar() {
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      unsubscribe(); // Cleanup the event listener
+      unsubscribe();
     };
   }, []);
 
-  // Code to change nav color on scroll
-  const headerColor = isScrolled ? "bg-black" : "bg-transparent";
-  const textColor = isScrolled ? "text-white" : "text-white"; // Set font color to white
-
-  const isSellPage = window.location.pathname === "/sell";
+  const headerColor = isScrolled ? "bg-black" : "bg-black";
+  const textColor = isScrolled ? "text-white" : "text-white";
+  const isHome = location.pathname === "/";
 
   return (
     <header className={`sticky top-0 w-full ${headerColor} z-50`}>
@@ -71,36 +78,55 @@ function Navbar() {
         <Link to="/" className="cursor-pointer">
           <img src={logo} alt="logo" className="w-40 pr-2 my-1 ml-2" />
         </Link>
-        <div className="relative flex items-center">
-          <button className={`rounded ml-2 ${textColor}`}>
-            <BsMic />
-          </button>
-          <input
-            type="text"
-            placeholder="Search..."
-            className={`mr-2 ml-2 h-8 w-96 p-2 rounded border bg-inherit relative border-color-gray-300 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 ${textColor}`}
-          />
-          <button
-            className={`h-8 ml-0 px-2 py-1 rounded transition-transform transform active:scale-95 focus:outline-none ${textColor} bg-red-500`}
-          >
-            <BsSearch />
-          </button>
-        </div>
+        {(isHome || location.pathname === "/sell") && (
+          <div className={`relative flex items-center ${showSearchBar ? 'visible' : 'hidden'}`}>
+            <button className={`rounded ml-2 ${textColor}`}>
+              <BsMic />
+            </button>
+            <input
+              type="text"
+              placeholder="Search..."
+              className={`mr-2 ml-2 h-8 w-96 p-2 rounded border bg-inherit relative border-color-gray-300 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 ${textColor}`}
+            />
+            <button
+              className={`h-8 ml-0 px-2 py-1 rounded transition-transform transform active:scale-95 focus:outline-none ${textColor} bg-red-500`}
+            >
+              <BsSearch />
+            </button>
+          </div>
+        )}
+        {!isHome && (
+          <div className="relative flex items-center visible"> {/* Always visible on other tabs */}
+            <button className={`rounded ml-2 ${textColor}`}>
+              <BsMic />
+            </button>
+            <input
+              type="text"
+              placeholder="Search..."
+              className={`mr-2 ml-2 h-8 w-96 p-2 rounded border bg-inherit relative border-color-gray-300 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 ${textColor}`}
+            />
+            <button
+              className={`h-8 ml-0 px-2 py-1 rounded transition-transform transform active:scale-95 focus:outline-none ${textColor} bg-red-500`}
+            >
+              <BsSearch />
+            </button>
+          </div>
+        )}
         <div className="flex justify-end items-center flex-grow ml-4">
-          {isSellPage ? (
+          {isHome ? (
+            <Link
+              to="/sell"
+              className={`mx-2 h-8 px-6 py-1 rounded transition-transform transform hover:scale-90 active:scale-95 focus:outline-none ${textColor} bg-red-500`}
+            >
+              Add Service
+            </Link>
+          ) : (
             <Link
               to="/"
               className={`mx-2 h-8 px-6 py-1 rounded transition-transform transform hover:scale-90 active:scale-95 focus:outline-none ${textColor} bg-transparent`}
             >
               Home
             </Link>
-          ) : (
-            <button
-              onClick={() => navigate("/sell")} // Use navigate to go to "/sell"
-              className={`mx-2 h-8 px-6 py-1 rounded transition-transform transform hover:scale-90 active:scale-95 focus:outline-none ${textColor} bg-red-500`}
-            >
-              Add Service
-            </button>
           )}
           {currentUser ? (
             <>
@@ -119,7 +145,6 @@ function Navbar() {
                     className="w-full h-full rounded-full"
                   />
                 ) : (
-                  // You can provide a default image or initials if photoURL is not available
                   <div className="w-full h-full rounded-full bg-gray-500 text-white flex items-center justify-center">
                     {currentUser.displayName &&
                       currentUser.displayName.charAt(0)}
@@ -145,7 +170,6 @@ function Navbar() {
           )}
         </div>
 
-        {/* Conditionally render Login and Sign Up modals */}
         {showLoginModal && <LoginModal onClose={closeModals} />}
         {showSignUpModal && <SignupModal onClose={closeModals} />}
       </div>
