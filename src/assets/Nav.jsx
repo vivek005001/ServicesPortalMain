@@ -1,6 +1,6 @@
 // Navbar.js
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Update import
 import logo from "../images/Name_logo.png";
 import { BsSearch, BsMic } from "react-icons/bs";
 import LoginModal from "./LoginModal";
@@ -12,6 +12,7 @@ function Navbar() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate(); // Replace useHistory with useNavigate
 
   const handleScroll = () => {
     const scrollPosition = window.scrollY;
@@ -62,6 +63,8 @@ function Navbar() {
   const headerColor = isScrolled ? "bg-black" : "bg-transparent";
   const textColor = isScrolled ? "text-white" : "text-white"; // Set font color to white
 
+  const isSellPage = window.location.pathname === "/sell";
+
   return (
     <header className={`sticky top-0 w-full ${headerColor} z-50`}>
       <div className={`flex items-center p-4 py-8 mb-10 mt-2 h-14 mx-auto max-w-7xl ${textColor}`}>
@@ -84,12 +87,21 @@ function Navbar() {
           </button>
         </div>
         <div className="flex justify-end items-center flex-grow ml-4">
-          <Link
-            to="/sell"
-            className={`mx-2 h-8 px-6 py-1 rounded transition-transform transform hover:scale-90 active:scale-95 focus:outline-none ${textColor} bg-red-500`}
-          >
-            Add Service
-          </Link>
+          {isSellPage ? (
+            <Link
+              to="/"
+              className={`mx-2 h-8 px-6 py-1 rounded transition-transform transform hover:scale-90 active:scale-95 focus:outline-none ${textColor} bg-transparent`}
+            >
+              Home
+            </Link>
+          ) : (
+            <button
+              onClick={() => navigate("/sell")} // Use navigate to go to "/sell"
+              className={`mx-2 h-8 px-6 py-1 rounded transition-transform transform hover:scale-90 active:scale-95 focus:outline-none ${textColor} bg-red-500`}
+            >
+              Add Service
+            </button>
+          )}
           {currentUser ? (
             <>
               <div className={`mx-2 h-8 px-4 py-1 rounded ${textColor}`}>
