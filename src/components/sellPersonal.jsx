@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { db } from "../assets/Firebase"; // Make sure to provide the correct path to your firebase.jsx file
-// import Sell_pro from "./sellProffesional";
+import { db } from "../assets/Firebase";
+import { Link } from "react-router-dom"; 
+
 function SellPersonal() {
   const [user, setPersonalInfo] = useState({
     First_Name: "",
@@ -66,9 +67,11 @@ function SellPersonal() {
         PROFILE PICTURE : <input type = "file" accept="image/jpeg,image/png" value ={user.Profile_picture} onChange ={handlePersonalChange} name="profile_pic" className="mt-5 mb-5"/><br/>
         DESCRIPTION :<br/>
         <textarea rows = "10" cols ="100" value={user.Description} placeholder="Write your description here" name="description" onChange={handlePersonalChange} className="mt-5"/>
+        <Link to="/sellPro">
         <button type="submit" className="ml-10 mb-10" name="submit_btn">
         CONTINUE
         </button>
+        </Link>
       </form>
       {/* <Sell_pro
         professionalInfo={professionalInfo}

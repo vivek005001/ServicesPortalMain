@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { db  } from "../assets/Firebase";
 
+function Sell_pro(){
 const [professionalInfo, setProfessionalInfo] = useState({
     Occupation: "",
     Skills: "",
@@ -30,7 +31,6 @@ const handleSubmit = (e) => {
     const userId = newUserRef.key;
 
   };
-function Sell_pro(){
 
     return(
     <>
