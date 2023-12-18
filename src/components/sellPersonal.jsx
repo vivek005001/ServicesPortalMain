@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { db } from "../assets/Firebase"; // Make sure to provide the correct path to your firebase.jsx file
-import Sell_pro from "./sellProffesional";
+// import Sell_pro from "./sellProffesional";
 function SellPersonal() {
   const [user, setPersonalInfo] = useState({
     First_Name: "",
@@ -10,23 +10,12 @@ function SellPersonal() {
     Description : "",
   });
   
-  const [professionalInfo, setProfessionalInfo] = useState({
-    Occupation: "",
-    Skills: "",
-    SkillLevel: "",
-    WebsiteLink: "",
-    GitHubLink: "",
-  })
 
   const handlePersonalChange = (e) => {
     const { name, value } = e.target;
     setPersonalInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
   };
 
-  const handleProfessionalChange = (e) => {
-    const { name, value } = e.target;
-    setProfessionalInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -54,7 +43,7 @@ function SellPersonal() {
           placeholder="FIRST NAME"
           value={user.First_Name}
           onChange={handlePersonalChange}
-          className="text-black rounded pl-2 pt-1 pb-2 ml-5 text-1xl"
+          className="text-black rounded pl-2 pt-1 pb-2 ml-5 text-1xl mt-5"
           type="text"
         />
         <input
@@ -62,30 +51,30 @@ function SellPersonal() {
           placeholder="LAST NAME"
           value={user.Last_Name}
           onChange={handlePersonalChange}
-          className="text-black rounded ml-5 pl-2 pt-1 pb-2 text-1xl"
+          className="text-black rounded ml-5 pl-2 pt-1 pb-2 text-1xl mt-5"
           type="text"
-        ></input>
+        ></input><br/>
         DISPLAY NAME
         <input
           name="Display_Name"
           value={user.Display_Name}
           placeholder="DISPLAY NAME"
           onChange={handlePersonalChange}
-          className="text-black rounded pl-2 pt-1 pb-2 ml-5 text-1xl"
+          className="text-black rounded pl-2 pt-1 pb-2 ml-5 text-1xl mt-5"
           type="text"
-        ></input>
-        PROFILE PICTURE : <input type = "file" accept="image/jpeg,image/png" value ={user.Profile_picture} onchange ={handlePersonalChange}/>
-        DESCRIPTION :
-        <textarea rows = "10" cols ="100" value={user.Description} placeholder="Write your description here" />
-        <button type="submit" className="ml-10">
+        ></input><br/>
+        PROFILE PICTURE : <input type = "file" accept="image/jpeg,image/png" value ={user.Profile_picture} onChange ={handlePersonalChange} name="profile_pic" className="mt-5 mb-5"/><br/>
+        DESCRIPTION :<br/>
+        <textarea rows = "10" cols ="100" value={user.Description} placeholder="Write your description here" name="description" onChange={handlePersonalChange} className="mt-5"/>
+        <button type="submit" className="ml-10 mb-10" name="submit_btn">
         CONTINUE
         </button>
       </form>
-      <Sell_pro
+      {/* <Sell_pro
         professionalInfo={professionalInfo}
         onChange={handleProfessionalChange}
         onSubmit={handleSubmit}
-      />
+      /> */}
     </div>
   );
 }
