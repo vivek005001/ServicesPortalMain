@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-
 import Navbar from './assets/Nav';
-import Sell_p from './components/SellPersonal';
+import Sell_p from './components/sellPersonal';
+import Sell_pro from "./components/sellProffesional";
 import Home from './components/Home';
 import LoginModal from './assets/LoginModal';
 import SignupModal from './assets/SignUpModal';
@@ -72,6 +72,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/sell" element={<Sell_p />} />
+        <Route path = '/sellPro' element = {<Sell_pro/>} />
       </Routes>
       <ToastContainer />
       {isLoginModalOpen && <LoginModal onClose={closeModals} onSignupRedirect={openSignupModal} />}
