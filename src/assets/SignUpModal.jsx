@@ -1,3 +1,4 @@
+// sihnUpModal.jsx is a component that is used to create a modal for the user to sign up
 import React, { useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import {
@@ -34,10 +35,8 @@ const SignupModal = ({ onClose }) => {
       });
 
       // Save user details to the database
-      set(ref(db, 'users/' + SignupData.username), {
-        username: SignupData.username,
-        email: SignupData.email,
-      });
+      saveUserDataToDatabase(SignupData.username, SignupData.email);
+
       console.log("User created successfully");
 
       onClose(); // Close the modal after successful submission
@@ -51,12 +50,32 @@ const SignupModal = ({ onClose }) => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
+
+      // Check if the user has a display name and email from Google
+      const googleUser = result.user;
+      if (googleUser.displayName && googleUser.email) {
+        // Save user details to the database
+        saveUserDataToDatabase(googleUser.displayName, googleUser.email);
+      } else {
+        // Prompt the user to provide additional information
+        // You can handle this according to your application's requirements
+        console.log("Additional information needed for Google signup");
+      }
+
       console.log("User signed up with Google successfully", result.user);
       onClose(); // Close the modal after successful submission
     } catch (error) {
       console.error("Error signing up with Google:", error.message);
       // Handle errors, such as displaying an error message to the user
     }
+  };
+
+  const saveUserDataToDatabase = (username, email) => {
+    // Save user details to the database
+    set(ref(db, 'users/' + username), {
+      username: username,
+      email: email,
+    });
   };
 
   const handleChange = (e) => {
@@ -143,7 +162,6 @@ const SignupModal = ({ onClose }) => {
             Signup with Google
           </button>
         </form>
-        
       </div>
     </div>
   );

@@ -1,7 +1,16 @@
+// LoginModal.js
+
 import React, { useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+} from "firebase/auth";
 import { auth } from "./Firebase"; // Import the auth object from your firebase.js file
+import { db } from "./Firebase";
+import { ref, update, get } from "firebase/database";
 
 const LoginModal = ({ onClose }) => {
   const [loginData, setLoginData] = useState({
@@ -14,14 +23,29 @@ const LoginModal = ({ onClose }) => {
 
     try {
       // Sign in user with email and password
-      await signInWithEmailAndPassword(auth, loginData.email, loginData.password);
+      const authResult = await signInWithEmailAndPassword(
+        auth,
+        loginData.email,
+        loginData.password
+      );
+
+      // Update the last login timestamp in the database
+      updateLastLogin(authResult.user.displayName);
       console.log("User signed in successfully");
 
       // You can add more logic here, such as redirecting or updating the UI
       onClose(); // Close the modal after successful submission
     } catch (error) {
-      console.error("Error signing in:", error.message);
-      // Handle errors, such as displaying an error message to the user
+      if (error.code === "auth/user-not-found") {
+        // User not found, prompt them to sign up
+        const shouldSignUp = window.confirm("User not found. Do you want to sign up?");
+        if (shouldSignUp) {
+          signUpUser(); // Call the sign-up function
+        }
+      } else {
+        console.error("Error signing in:", error.message);
+        // Handle other errors, such as displaying an error message to the user
+      }
     }
   };
 
@@ -29,12 +53,50 @@ const LoginModal = ({ onClose }) => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
+
+      // Check if the user has a display name from Google
+      const googleUser = result.user;
+      if (googleUser.displayName) {
+        // Update the last login timestamp in the database
+        updateLastLogin(googleUser.displayName);
+        
+      } else {
+        // Prompt the user to provide additional information
+        // You can handle this according to your application's requirements
+        console.log("Additional information needed for Google login");
+      }
+
       console.log("User signed in with Google successfully", result.user);
       onClose(); // Close the modal after successful submission
     } catch (error) {
       console.error("Error signing in with Google:", error.message);
       // Handle errors, such as displaying an error message to the user
     }
+  };
+
+  const updateLastLogin = async (username) => {
+    // Check if the user exists in the database
+    const userSnapshot = await get(ref(db, 'users/' + username));
+
+    if (userSnapshot.exists()) {
+      // User exists, update the last login timestamp
+      update(ref(db, 'users/' + username), {
+        lastLogin: Date.now(),
+      });
+    } else {
+      // User doesn't exist, prompt them to sign up
+      const shouldSignUp = window.confirm("User not found. Do you want to sign up?");
+      if (shouldSignUp) {
+        signUpUser(); // Call the sign-up function
+      }
+    }
+  };
+
+  const signUpUser = () => {
+    // Implement your sign-up logic here
+    console.log("Redirect or open signup modal");
+    // Example: Redirect to the signup page
+    // window.location.href = "/signup";
   };
 
   const handleChange = (e) => {
@@ -104,7 +166,6 @@ const LoginModal = ({ onClose }) => {
             Login with Google
           </button>
         </form>
-        
       </div>
     </div>
   );
