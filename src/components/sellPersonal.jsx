@@ -1,36 +1,38 @@
-// SellPersonal.js
 import React, { useState, useEffect } from "react";
-import { db, auth } from "../assets/Firebase";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { auth } from "../assets/Firebase";
+import LoginModal from "../assets/LoginModal";
+import { ref, update } from "firebase/database";
+import { db } from "../assets/Firebase";
 
-function SellCombined() {
+function SellPersonal() {
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [user, setPersonalInfo] = useState({
     First_Name: "",
     Last_Name: "",
     Display_Name: "",
     Profile_picture: "",
     Description: "",
+    Username: "",
+    Email: "",
   });
-
-  const [professionalInfo, setProfessionalInfo] = useState({
-    Occupation: "",
-    Skills: "",
-    SkillLevel: "",
-    WebsiteLink: "",
-    GitHubLink: "",
-  });
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showPersonalForm, setShowPersonalForm] = useState(true);
+  const [showPersonalForm, setShowPersonalForm] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if a user is currently logged in
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setIsLoggedIn(true);
+        setPersonalInfo((prevInfo) => ({
+          ...prevInfo,
+          Username: user.displayName || "",
+          Email: user.email || "",
+        }));
+        setShowPersonalForm(true); // Show the form after successful login
       } else {
         setIsLoggedIn(false);
-        // Redirect the user to the login page or handle authentication state
+        setShowPersonalForm(false); // Hide the form when not logged in
       }
     });
 
@@ -38,155 +40,198 @@ function SellCombined() {
   }, []);
 
   const handlePersonalChange = (e) => {
+    // Handle changes in the input fields
     const { name, value } = e.target;
-    setPersonalInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
+    setPersonalInfo((prevUser) => ({
+      ...prevUser,
+      [name]: value,
+    }));
   };
 
-  const handleProfessionalChange = (e) => {
-    const { name, value } = e.target;
-    setProfessionalInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
-  };
-
-  const handlePersonalSubmit = (e) => {
+  const handlePersonalSubmit = async (e) => {
     e.preventDefault();
-
-    if (!isLoggedIn) {
-      console.log("User is not logged in");
-      return;
-    }
-
-    // Save personalInfo to Firebase or perform any other actions
+    // Handle the form submission logic here
     // ...
-
-    // After saving, switch to the professionalInfo form
-    setShowPersonalForm(false);
-  };
-
-  const handleProfessionalSubmit = async (e) => {
-    e.preventDefault();
+    const {
+      First_Name,
+      Last_Name,
+      Display_Name,
+      Profile_picture,
+      Description,
+      Username,
+      Email,
+    } = user;
 
     if (!isLoggedIn) {
-      console.log("User is not logged in");
+      // Redirect to the login page
+      navigate("/login");
       return;
     }
 
-    const usersRef = db.ref("users");
+    // Assuming "users" is the collection in your database
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        First_Name,
+        Last_Name,
+        Display_Name,
+        Profile_picture,
+        Description,
+        Username,
+        Email, // Include the email in the request
+      }),
+    };
 
-    try {
-      // Push the user data to the "users" collection in Firebase
-      const newUserRef = await usersRef.push({
-        ...user,
-        professionalInfo: {
-          ...professionalInfo,
-        },
+    const res = await fetch(
+      "https://serviceportalmain-default-rtdb.firebaseio.com/UserData.json",
+      options
+    );
+
+    console.log(res);
+
+    if (res.ok) {
+      console.log("Success");
+      // Update the last login timestamp in Firebase
+      const usernameRef = ref(db, "users/" + Username);
+      update(usernameRef, {
+        lastLogin: Date.now(),
       });
-
-      const userId = newUserRef.key;
-
-      // Optionally, you can perform additional actions after submitting to Firebase
-
-      // Redirect or navigate to the next page (e.g., "/sellPro")
-      // This depends on your routing setup
-      // Replace the following line with your actual routing logic
-      window.location.href = "/sellPro";
-    } catch (error) {
-      console.error("Error submitting data to Firebase:", error.message);
-      // Handle errors, such as displaying an error message to the user
+      // Continue with navigation or any other logic
+      navigate("/sell_pro");
+    } else {
+      console.log("Failed");
     }
+
+    // After successful submission, you can navigate to the desired page
+    navigate("/sell_pro");
+  };
+
+  const closeModals = () => {
+    setShowLoginModal(false);
+    // Add logic to close other modals if needed
   };
 
   return (
-    <div>
+    <div className="bg-black text-gray-100 min-h-screen">
       {isLoggedIn ? (
         <>
           {showPersonalForm ? (
             <>
-              <h1 className="text-5xl font-bold ml-10">Personal Info</h1>
+              <h1 className="text-5xl font-bold ml-10 text-slate-600">
+                Personal Info
+              </h1>
+              {/* add line */}
+  
               <form className="mt-5 ml-10" onSubmit={handlePersonalSubmit}>
                 {/* Personal Info input boxes */}
-                FULL NAME
-                <input
-                  name="First_Name"
-                  placeholder="FIRST NAME"
-                  value={user.First_Name}
-                  onChange={handlePersonalChange}
-                  className="text-black rounded pl-2 pt-1 pb-2 ml-5 text-1xl mt-5"
-                  type="text"
-                />
-                <input
-                  name="Last_Name"
-                  placeholder="LAST NAME"
-                  value={user.Last_Name}
-                  onChange={handlePersonalChange}
-                  className="text-black rounded ml-5 pl-2 pt-1 pb-2 text-1xl mt-5"
-                  type="text"
-                />
+                <div className="flex">
+                  <div className="mt-5">Full Name :</div>
+                  <div className=" ml-40 pt-0 mt-0">
+                    <input
+                      name="First_Name"
+                      placeholder="FIRST NAME"
+                      value={user.First_Name}
+                      onChange={handlePersonalChange}
+                      className="border border-slate-600 text-white rounded pl-2 pt-1 pb-2 ml-5 text-1xl mt-5 bg-black mb-20"
+                      type="text"
+                      required
+                    />
+  
+                    <input
+                      name="Last_Name"
+                      placeholder="LAST NAME"
+                      value={user.Last_Name}
+                      onChange={handlePersonalChange}
+                      className="border border-slate-600 text-white rounded ml-5 pl-2 pt-1 pb-2 text-1xl mt-5 bg-black mb-20"
+                      type="text"
+                      required
+                    />
+                  </div>
+                </div>
                 <br />
-                DISPLAY NAME
-                <input
-                  name="Display_Name"
-                  value={user.Display_Name}
-                  placeholder="DISPLAY NAME"
-                  onChange={handlePersonalChange}
-                  className="text-black rounded pl-2 pt-1 pb-2 ml-5 text-1xl mt-5"
-                  type="text"
-                />
+                <div className="flex">
+                  <div className="mt-5">Nickname :</div>
+                  <div className=" ml-40 pt-0 mt-0">
+                    <input
+                      name="Display_Name"
+                      value={user.Display_Name}
+                      placeholder="What should we call you?"
+                      onChange={handlePersonalChange}
+                      className="border border-slate-600 text-white rounded pl-2 pt-1 pb-2 ml-5 w-96 text-1xl mt-5 bg-black mb-20"
+                      type="text"
+                      style={{ color: "black" }}
+                    />
+                  </div>
+                </div>
                 <br />
-                PROFILE PICTURE :{" "}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  value={user.Profile_picture}
-                  onChange={handlePersonalChange}
-                  name="profile_pic"
-                  className="mt-5 mb-5"
-                />
+  
+                <div className="flex">
+                  <div className="mt-5">Profile Picture :</div>
+                  <div className="ml-40 pt-0 mt-0">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      value={user.Profile_picture}
+                      onChange={handlePersonalChange}
+                      name="profile_pic"
+                      className="border border-slate-600 mt-5 mb-20  bg-black"
+                    />
+                  </div>
+                </div>
                 <br />
-                DESCRIPTION :<br />
-                <textarea
-                  rows="10"
-                  cols="100"
-                  value={user.Description}
-                  placeholder="Write your description here"
-                  name="description"
-                  onChange={handlePersonalChange}
-                  className="mt-5"
-                />
-                <Link to="/sellPro">
-                  <button
-                    type="submit"
-                    className="ml-10 mb-10"
-                    name="submit_btn"
-                  >
-                    CONTINUE
-                  </button>
-                </Link>
+                <div className="flex">
+                  <div className="mt-5">Description :</div>
+                  <div className="ml-40 pt-0 mt-0">
+                    <textarea
+                      rows="10"
+                      cols="100"
+                      // value={user.Description}
+                      placeholder="Write your description here"
+                      defaultValue=""
+                      name="description"
+                      onChange={handlePersonalChange}
+                      className="border border-slate-600 mt-5 bg-black text-white mb-20"
+                      readOnly={false}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end pr-24">
+                  <Link to="/sell_pro">
+                    <button
+                      type="submit"
+                      className="ml-10 mb-10 bg-red-500 p-2 rounded text-white"
+                      name="submit_btn"
+                      onClick={handlePersonalSubmit}
+                    >
+                      CONTINUE
+                    </button>
+                  </Link>
+                </div>
               </form>
             </>
           ) : (
-            <>
-              <h1 className="text-5xl font-bold ml-10">Professional Info</h1>
-              <form
-                className="mt-5 ml-5"
-                onSubmit={handleProfessionalSubmit}
-                name="sell_proffes"
-              >
-                {/* Professional Info input boxes */}
-                {/* ... (rest of your professional info form) */}
-                <button className="ml-5 mt-5" type="submit">
-                  SAVE
-                </button>
-              </form>
-            </>
+            <></>
           )}
         </>
       ) : (
-        <div className="ml-10 mt-5 text-red-500">
-          Please log in to make changes.
+        <div className="flex items-center justify-center h-screen flex-col mb-1">
+          <p className="text-xl mb-4 text-white">
+            You are not logged in. Please login to continue.
+          </p>
+          <button
+            onClick={() => setShowLoginModal(true)}
+            className="bg-red-500 text-white py-2 px-4 rounded-lg transition-transform transform hover:scale-105 focus:outline-none"
+          >
+            Login
+          </button>
         </div>
       )}
+      {showLoginModal && <LoginModal onClose={closeModals} />}
     </div>
   );
+  
 }
-
-export default SellCombined;
+export default SellPersonal;

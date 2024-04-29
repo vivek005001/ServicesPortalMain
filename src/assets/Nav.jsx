@@ -7,7 +7,6 @@ import LoginModal from "./LoginModal";
 import SignupModal from "./SignUpModal";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
-
 function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
@@ -26,7 +25,7 @@ function Navbar() {
     // Show/hide search bar based on scroll position and homepage
     setShowSearchBar(
       currentScrollPosition > window.innerHeight * 0.5 &&
-      (location.pathname === "/" || location.pathname === "/sell")
+      location.pathname === "/" // Only show on the home tab
     );
   };
 
@@ -95,7 +94,7 @@ function Navbar() {
             </button>
           </div>
         )}
-        {!isHome && (
+        {(!isHome && location.pathname !== "/sell") && (
           <div className="relative flex items-center visible"> {/* Always visible on other tabs */}
             <button className={`rounded ml-2 ${textColor}`}>
               <BsMic />

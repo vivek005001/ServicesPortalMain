@@ -4,8 +4,9 @@ import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 
 import Navbar from './assets/Nav';
-import Sell_p from './components/SellPersonal';
-import Home from './components/Home';
+import Sell_p from './components/sellPersonal';
+import Sell_pro from './components/sellProfessional';
+import Home from './components/home';
 import LoginModal from './assets/LoginModal';
 import SignupModal from './assets/SignUpModal';
 
@@ -72,6 +73,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/sell" element={<Sell_p />} />
+        <Route path="/sell_pro" element={<Sell_pro />} />
+        <Route path="/login" element={<LoginModal onClose={closeModals} onSignupRedirect={openSignupModal} />} />
       </Routes>
       <ToastContainer />
       {isLoginModalOpen && <LoginModal onClose={closeModals} onSignupRedirect={openSignupModal} />}

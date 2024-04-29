@@ -10,9 +10,7 @@ function Home() {
     >
       <div className="w-911 h-214 flex-shrink-0">
         <h1 className="text-white font-montserrat font-bold text-6xl leading-none m-0">
-          Freelancing Made <br /> Easy!
-          
-          
+          Freelancing Made <br /> Easy!          
         </h1>
       </div>
 
